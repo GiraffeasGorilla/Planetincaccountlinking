@@ -1,315 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Link Accounts</title>
-  <style>
-    :root {
-      --primary: #0084ff;
-      --discord: #5865F2;
-      --success: #2e7d32;
-      --danger: #d32f2f;
-      --bg: #f0f2f5;
-      --card-bg: #ffffff;
-      --text: #333;
-      --text-light: #666;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      color: var(--text);
-    }
-
-    .container {
-      background: var(--card-bg);
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      text-align: center;
-      max-width: 450px;
-      width: 90%;
-      transition: all 0.3s ease;
-    }
-
-    h1 { 
-      margin-top: 0; 
-      font-size: 28px; 
-      font-weight: 700; 
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    p { color: var(--text-light); margin-bottom: 25px; line-height: 1.6; }
-
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      margin: 12px 0;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-    .btn:active { transform: translateY(0); }
-    
-    .btn-meta { background: var(--primary); color: white; }
-    .btn-meta:hover { background: #006bcf; }
-    
-    .btn-discord { background: var(--discord); color: white; }
-    .btn-discord:hover { background: #4752c4; }
-    
-    .btn-success { background: var(--success); color: white; cursor: default; }
-    .btn-success:hover { transform: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-
-    .btn-unlink { 
-      background: transparent; 
-      color: var(--danger); 
-      border: 2px solid var(--danger); 
-      margin-top: 20px;
-      padding: 12px;
-    }
-    .btn-unlink:hover { 
-      background: var(--danger); 
-      color: white; 
-      transform: translateY(-2px);
-    }
-
-    .hidden { display: none; }
-    
-    /* Profile Cards */
-    .profile-card {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 15px 0;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      border: 1px solid #e0e0e0;
-    }
-    .avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .meta-avatar { background: #e3f2fd; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: var(--primary); }
-    .discord-avatar { background: #e8eaf6; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: var(--discord); }
-    
-    .profile-info { text-align: left; flex: 1; }
-    .profile-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 700; }
-    .profile-value { font-size: 16px; font-weight: 600; color: var(--text); margin-top: 4px; }
-
-    #loading { font-size: 18px; color: var(--text-light); }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 5px;
-    }
-    .status-connected { background: #e8f5e9; color: var(--success); }
-  </style>
+    <title>Verify Link</title>
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <h1>Verifying Link...</h1>
+    <div id="status">Checking...</div>
 
-<div class="container">
-  <!-- Step 1: Link Meta -->
-  <div id="step-meta">
-    <h1>🔗 Link Accounts</h1>
-    <p>Connect your Meta and Discord accounts to unlock exclusive features.</p>
-    <a id="meta-btn" class="btn btn-meta" href="#">Link with Meta</a>
-  </div>
+    <script>
+        // ⚠️ CONFIGURATION
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const META_APP_ID = "YOUR_META_APP_ID";
+        const ORG_NAME = "myStitch14"; // Your Org Name
 
-  <!-- Step 2: Link Discord -->
-  <div id="step-discord" class="hidden">
-    <h1>🎮 Almost Done!</h1>
-    <p>Meta is connected. Now link your Discord to finish.</p>
-    <a id="discord-btn" class="btn btn-discord" href="#">Link with Discord</a>
-  </div>
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <!-- Success Screen -->
-  <div id="success" class="hidden">
-    <h1>🎉 All Linked!</h1>
-    <p>Your accounts are successfully connected.</p>
+        // 1. Get the URL parameter (the Meta Access Token passed from Unity or Login)
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('token');
 
-    <!-- Meta Profile Card -->
-    <div class="profile-card">
-      <div class="avatar meta-avatar">M</div>
-      <div class="profile-info">
-        <div class="profile-label">Meta Account</div>
-        <div class="profile-value" id="meta-display">Loading...</div>
-        <div class="status-badge status-connected">Connected</div>
-      </div>
-    </div>
+        if (!accessToken) {
+            document.getElementById('status').innerText = "No token found.";
+        }
 
-    <!-- Discord Profile Card -->
-    <div class="profile-card">
-      <div class="avatar discord-avatar">D</div>
-      <div class="profile-info">
-        <div class="profile-label">Discord Account</div>
-        <div class="profile-value">Linked Successfully</div>
-        <div class="status-badge status-connected">Connected</div>
-      </div>
-    </div>
+        // 2. Ask Meta for the User ID
+        fetch(`https://graph.facebook.com/v19.0/me?fields=id&access_token=${accessToken}`)
+            .then(res => res.json())
+            .then(metaData => {
+                const userId = metaData.id;
+                console.log("User ID:", userId);
 
-    <button class="btn btn-success" onclick="window.close()">Close & Return to Site</button>
-    
-    <button class="btn btn-unlink" onclick="unlinkAccounts()">⚠️ Unlink Accounts</button>
-  </div>
+                // 3. (Optional) Check if user is actually in your Org `myStitch14`
+                // NOTE: Meta API for "Org Membership" is restricted. 
+                // If you are just checking if they logged in with YOUR app, we assume they are.
+                // If you need to check a specific Business Org, you need Business Access Tokens.
+                // For now, we assume if they logged in with YOUR app, they are "linked".
 
-  <!-- Error Screen -->
-  <div id="error" class="hidden">
-    <h1>⚠️ Error</h1>
-    <p id="error-msg" style="color: var(--danger); margin: 20px 0;"></p>
-    <button class="btn btn-meta" onclick="location.reload()">Try Again</button>
-  </div>
-</div>
+                // 4. Save/Verify in Supabase
+                // We insert the user ID and mark them as verified
+                const { data, error } = supabase
+                    .from('linked_users')
+                    .upsert({ user_meta_id: userId, is_verified: true }, { onConflict: 'user_meta_id' })
+                    .select();
 
-<script>
-  const META_ORG_ID = "311136358617844";
-  const DISCORD_CLIENT_ID = "1499535933119397999";
-  const BASE_URL = window.location.origin + window.location.pathname;
-  
-  const META_REDIRECT_URI = BASE_URL; 
-  const DISCORD_REDIRECT_URI = BASE_URL;
-
-  const STORAGE_META = 'linked_meta_id';
-  const STORAGE_DISCORD = 'discord_linked_flag';
-
-  window.onload = function() {
-    const hash = window.location.hash.substring(1);
-    const search = window.location.search.substring(1);
-
-    // 1. Check for Meta Data
-    if (hash && hash.length > 10) {
-      processMetaLink(hash);
-      return;
-    }
-
-    // 2. Check for Discord Code
-    if (search && search.includes('code=')) {
-      processDiscordLink(search);
-      return;
-    }
-    if (hash && hash.includes('code=')) {
-      processDiscordLink(hash);
-      return;
-    }
-
-    // 3. Check if already linked
-    const metaId = localStorage.getItem(STORAGE_META);
-    const discordLinked = localStorage.getItem(STORAGE_DISCORD);
-
-    if (metaId && discordLinked) {
-      showSuccess(metaId, "Discord User"); // Placeholder name
-      return;
-    }
-
-    if (metaId) {
-      showStep('discord');
-      document.getElementById('discord-btn').href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
-      return;
-    }
-
-    // 4. Show Meta Button
-    document.getElementById('meta-btn').href = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
-  };
-
-  function showStep(step) {
-    ['step-meta', 'step-discord', 'success', 'error'].forEach(id => {
-      document.getElementById(id).classList.add('hidden');
-    });
-    document.getElementById(`step-${step === 'success' ? 'success' : step === 'error' ? 'error' : step}`).classList.remove('hidden');
-  }
-
-  function processMetaLink(hash) {
-    try {
-      const json = atob(hash);
-      const data = JSON.parse(json);
-      let id = data['org-scoped_id'] || data.org_scoped_id || data['user_id'] || data.user_id || data['id'] || data.id;
-      
-      if (!id) {
-        const values = Object.values(data);
-        const potentialId = values.find(v => typeof v === 'string' && (v.includes('-') || /^\d+$/.test(v)));
-        if (potentialId) id = potentialId;
-      }
-
-      if (!id) throw new Error("No ID found");
-
-      localStorage.setItem(STORAGE_META, id);
-      showStep('discord');
-      document.getElementById('discord-btn').href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
-
-    } catch (err) {
-      document.getElementById('error-msg').textContent = "Meta Link Failed: " + err.message;
-      showStep('error');
-    }
-  }
-
-  function processDiscordLink(paramString) {
-    try {
-      let code = null;
-      if (paramString.includes('?')) {
-        code = new URLSearchParams(paramString).get('code');
-      } else {
-        code = new URLSearchParams(paramString.replace('#', '')).get('code');
-      }
-
-      if (!code) throw new Error("No code received");
-
-      // Save the flag that Discord is linked
-      localStorage.setItem(STORAGE_DISCORD, 'true');
-      
-      // Get Meta ID
-      const metaId = localStorage.getItem(STORAGE_META) || "Unknown";
-      
-      showSuccess(metaId, "Discord User"); // Placeholder name
-
-    } catch (err) {
-      document.getElementById('error-msg').textContent = "Discord Link Failed: " + err.message;
-      showStep('error');
-    }
-  }
-
-  function showSuccess(metaId, discordName) {
-    document.getElementById('meta-display').textContent = metaId;
-    document.getElementById('success').classList.remove('hidden');
-    // Hide others
-    ['step-meta', 'step-discord', 'error'].forEach(id => document.getElementById(id).classList.add('hidden'));
-    
-    // Clean URL
-    window.history.replaceState({}, document.title, BASE_URL);
-  }
-
-  function unlinkAccounts() {
-    if(confirm("Are you sure you want to unlink your accounts?")) {
-      localStorage.removeItem(STORAGE_META);
-      localStorage.removeItem(STORAGE_DISCORD);
-      location.reload();
-    }
-  }
-</script>
-
+                if (error) {
+                    console.error("DB Error:", error);
+                    document.getElementById('status').innerText = "Error verifying.";
+                } else {
+                    document.getElementById('status').innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>Your Meta ID (${userId}) is now linked to ` + ORG_NAME + `.</p>
+                        <p><strong>Return to the game to claim your reward.</strong></p>
+                    `;
+                }
+            })
+            .catch(err => {
+                document.getElementById('status').innerText = "Error connecting to Meta.";
+            });
+    </script>
 </body>
 </html>
