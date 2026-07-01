@@ -94,7 +94,7 @@
   const BASE_URL = window.location.origin + window.location.pathname;
   
   const META_REDIRECT_URI = BASE_URL; 
-  const DISCORD_CLIENT_ID = "1499535933119397999"; // REPLACE THIS
+  const DISCORD_CLIENT_ID = "YOUR_DISCORD_CLIENT_ID"; // REPLACE THIS
   const DISCORD_REDIRECT_URI = BASE_URL;
 
   let currentMetaId = null;
@@ -138,12 +138,34 @@
     try {
       const json = atob(hash);
       const data = JSON.parse(json);
-      currentMetaId = data['org-scoped_id'] || data.user_id;
+      
+      console.log("Decoded Data:", data); // Debug: See what keys are available
 
-      if (!currentMetaId) throw new Error("No ID found");
+      // NEW: Flexible ID extraction
+      let id = data['org-scoped_id'] || data.org_scoped_id;
+      
+      // Try other common keys
+      if (!id) id = data['user_id'] || data.user_id;
+      if (!id) id = data['id'] || data.id;
+      if (!id) id = data['org-scoped_id'] || data['orgScopedId']; // Case variations
+
+      // Fallback: If we found ANY string that looks like an ID (numeric or UUID)
+      if (!id) {
+        // Check all values in the object
+        const values = Object.values(data);
+        const potentialId = values.find(v => typeof v === 'string' && (v.includes('-') || /^\d+$/.test(v)));
+        if (potentialId) id = potentialId;
+      }
+
+      if (!id) {
+        console.error("No valid ID found in:", data);
+        throw new Error("No ID found in response. Check console for details.");
+      }
+
+      currentMetaId = id;
+      console.log("Found ID:", id);
 
       showStep('discord');
-      // Update Discord button URL if needed, or just keep it static
 
     } catch (err) {
       console.error(err);
@@ -154,7 +176,6 @@
 
   function processDiscordLink(paramString) {
     try {
-      // Extract code from ?code=... or #code=...
       let code = null;
       if (paramString.includes('?')) {
         const params = new URLSearchParams(paramString);
@@ -166,13 +187,10 @@
 
       if (!code) throw new Error("No code received");
 
-      // Simulate success (In real app, send 'code' to backend)
       document.getElementById('user-info').innerHTML = 
         `<strong>Meta:</strong> ${currentMetaId}<br><strong>Discord:</strong> Linked`;
       
       showStep('success');
-      
-      // Optional: Clean URL
       window.history.replaceState({}, document.title, BASE_URL);
 
     } catch (err) {
