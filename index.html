@@ -5,90 +5,188 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Link Accounts</title>
   <style>
+    :root {
+      --primary: #0084ff;
+      --discord: #5865F2;
+      --success: #2e7d32;
+      --danger: #d32f2f;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --text: #333;
+      --text-light: #666;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
+      background: var(--bg);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      color: var(--text);
     }
+
     .container {
-      background: white;
+      background: var(--card-bg);
       padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       text-align: center;
-      max-width: 400px;
-      width: 100%;
+      max-width: 450px;
+      width: 90%;
+      transition: all 0.3s ease;
     }
-    h1 { margin-top: 0; color: #333; }
-    p { color: #666; margin-bottom: 25px; }
-    
+
+    h1 { 
+      margin-top: 0; 
+      font-size: 28px; 
+      font-weight: 700; 
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    p { color: var(--text-light); margin-bottom: 25px; line-height: 1.6; }
+
     .btn {
       display: block;
       width: 100%;
-      padding: 14px;
-      margin: 10px 0;
+      padding: 16px;
+      margin: 12px 0;
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      transition: transform 0.2s, background 0.2s;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
-    .btn:hover { transform: translateY(-2px); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    .btn:active { transform: translateY(0); }
     
-    .btn-meta { background: #0084ff; color: white; }
+    .btn-meta { background: var(--primary); color: white; }
     .btn-meta:hover { background: #006bcf; }
     
-    .btn-discord { background: #5865F2; color: white; }
+    .btn-discord { background: var(--discord); color: white; }
     .btn-discord:hover { background: #4752c4; }
     
-    .btn-success { background: #2e7d32; color: white; cursor: default; }
-    .btn-success:hover { transform: none; background: #2e7d32; }
+    .btn-success { background: var(--success); color: white; cursor: default; }
+    .btn-success:hover { transform: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+    .btn-unlink { 
+      background: transparent; 
+      color: var(--danger); 
+      border: 2px solid var(--danger); 
+      margin-top: 20px;
+      padding: 12px;
+    }
+    .btn-unlink:hover { 
+      background: var(--danger); 
+      color: white; 
+      transform: translateY(-2px);
+    }
 
     .hidden { display: none; }
-    .status { margin-top: 15px; font-weight: bold; }
-    .meta-status { color: #0084ff; }
-    .discord-status { color: #5865F2; }
     
-    #loading { font-size: 18px; color: #555; }
+    /* Profile Cards */
+    .profile-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border: 1px solid #e0e0e0;
+    }
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .meta-avatar { background: #e3f2fd; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: var(--primary); }
+    .discord-avatar { background: #e8eaf6; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: var(--discord); }
+    
+    .profile-info { text-align: left; flex: 1; }
+    .profile-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 700; }
+    .profile-value { font-size: 16px; font-weight: 600; color: var(--text); margin-top: 4px; }
+
+    #loading { font-size: 18px; color: var(--text-light); }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+    .status-connected { background: #e8f5e9; color: var(--success); }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Step 1: Link Meta -->
   <div id="step-meta">
     <h1>🔗 Link Accounts</h1>
-    <p>Connect your Meta account first to unlock features.</p>
+    <p>Connect your Meta and Discord accounts to unlock exclusive features.</p>
     <a id="meta-btn" class="btn btn-meta" href="#">Link with Meta</a>
   </div>
 
+  <!-- Step 2: Link Discord -->
   <div id="step-discord" class="hidden">
-    <h1>🎮 Link Discord</h1>
-    <p>Meta connected! Now connect your Discord.</p>
+    <h1>🎮 Almost Done!</h1>
+    <p>Meta is connected. Now link your Discord to finish.</p>
     <a id="discord-btn" class="btn btn-discord" href="#">Link with Discord</a>
   </div>
 
+  <!-- Success Screen -->
   <div id="success" class="hidden">
     <h1>🎉 All Linked!</h1>
     <p>Your accounts are successfully connected.</p>
-    <div id="user-info" style="margin: 20px 0; font-size: 14px; color: #444;"></div>
+
+    <!-- Meta Profile Card -->
+    <div class="profile-card">
+      <div class="avatar meta-avatar">M</div>
+      <div class="profile-info">
+        <div class="profile-label">Meta Account</div>
+        <div class="profile-value" id="meta-display">Loading...</div>
+        <div class="status-badge status-connected">Connected</div>
+      </div>
+    </div>
+
+    <!-- Discord Profile Card -->
+    <div class="profile-card">
+      <div class="avatar discord-avatar">D</div>
+      <div class="profile-info">
+        <div class="profile-label">Discord Account</div>
+        <div class="profile-value">Linked Successfully</div>
+        <div class="status-badge status-connected">Connected</div>
+      </div>
+    </div>
+
     <button class="btn btn-success" onclick="window.close()">Close & Return to Site</button>
+    
+    <button class="btn btn-unlink" onclick="unlinkAccounts()">⚠️ Unlink Accounts</button>
   </div>
 
+  <!-- Error Screen -->
   <div id="error" class="hidden">
     <h1>⚠️ Error</h1>
-    <p id="error-msg" style="color: #d32f2f;"></p>
+    <p id="error-msg" style="color: var(--danger); margin: 20px 0;"></p>
     <button class="btn btn-meta" onclick="location.reload()">Try Again</button>
   </div>
 </div>
 
 <script>
-  // CONFIGURATION
   const META_ORG_ID = "311136358617844";
   const DISCORD_CLIENT_ID = "1499535933119397999";
   const BASE_URL = window.location.origin + window.location.pathname;
@@ -96,91 +194,74 @@
   const META_REDIRECT_URI = BASE_URL; 
   const DISCORD_REDIRECT_URI = BASE_URL;
 
-  // Use localStorage to persist data across page reloads
-  const STORAGE_KEY_META = 'linked_meta_id';
+  const STORAGE_META = 'linked_meta_id';
+  const STORAGE_DISCORD = 'discord_linked_flag';
 
   window.onload = function() {
     const hash = window.location.hash.substring(1);
     const search = window.location.search.substring(1);
 
-    console.log("Hash:", hash);
-    console.log("Search:", search);
-
-    // 1. Check for Meta Data (Hash)
+    // 1. Check for Meta Data
     if (hash && hash.length > 10) {
       processMetaLink(hash);
       return;
     }
 
-    // 2. Check for Discord Code (Query Param ?code=...)
+    // 2. Check for Discord Code
     if (search && search.includes('code=')) {
       processDiscordLink(search);
       return;
     }
-
-    // 3. Fallback: Check hash for code
     if (hash && hash.includes('code=')) {
       processDiscordLink(hash);
       return;
     }
 
-    // 4. Default: Check if Meta is already linked (from previous session)
-    const savedMetaId = localStorage.getItem(STORAGE_KEY_META);
-    if (savedMetaId) {
-      console.log("Found saved Meta ID:", savedMetaId);
-      showStep('discord');
-      const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
-      document.getElementById('discord-btn').href = discordUrl;
+    // 3. Check if already linked
+    const metaId = localStorage.getItem(STORAGE_META);
+    const discordLinked = localStorage.getItem(STORAGE_DISCORD);
+
+    if (metaId && discordLinked) {
+      showSuccess(metaId, "Discord User"); // Placeholder name
       return;
     }
 
-    // 5. Show Meta Button
-    const metaUrl = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
-    document.getElementById('meta-btn').href = metaUrl;
+    if (metaId) {
+      showStep('discord');
+      document.getElementById('discord-btn').href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
+      return;
+    }
+
+    // 4. Show Meta Button
+    document.getElementById('meta-btn').href = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
   };
 
   function showStep(step) {
-    document.getElementById('step-meta').classList.add('hidden');
-    document.getElementById('step-discord').classList.add('hidden');
-    document.getElementById('success').classList.add('hidden');
-    document.getElementById('error').classList.add('hidden');
-
-    if (step === 'meta') document.getElementById('step-meta').classList.remove('hidden');
-    if (step === 'discord') document.getElementById('step-discord').classList.remove('hidden');
-    if (step === 'success') document.getElementById('success').classList.remove('hidden');
-    if (step === 'error') document.getElementById('error').classList.remove('hidden');
+    ['step-meta', 'step-discord', 'success', 'error'].forEach(id => {
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(`step-${step === 'success' ? 'success' : step === 'error' ? 'error' : step}`).classList.remove('hidden');
   }
 
   function processMetaLink(hash) {
     try {
       const json = atob(hash);
       const data = JSON.parse(json);
-      
-      console.log("Decoded Meta Data:", data);
-
       let id = data['org-scoped_id'] || data.org_scoped_id || data['user_id'] || data.user_id || data['id'] || data.id;
       
-      // Fallback: Find any numeric string or UUID
       if (!id) {
         const values = Object.values(data);
         const potentialId = values.find(v => typeof v === 'string' && (v.includes('-') || /^\d+$/.test(v)));
         if (potentialId) id = potentialId;
       }
 
-      if (!id) {
-        throw new Error("No ID found in response. Check console.");
-      }
+      if (!id) throw new Error("No ID found");
 
-      // SAVE TO LOCALSTORAGE
-      localStorage.setItem(STORAGE_KEY_META, id);
-      console.log("Saved Meta ID to storage:", id);
-
+      localStorage.setItem(STORAGE_META, id);
       showStep('discord');
-      const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
-      document.getElementById('discord-btn').href = discordUrl;
+      document.getElementById('discord-btn').href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
 
     } catch (err) {
-      console.error(err);
       document.getElementById('error-msg').textContent = "Meta Link Failed: " + err.message;
       showStep('error');
     }
@@ -190,36 +271,42 @@
     try {
       let code = null;
       if (paramString.includes('?')) {
-        const params = new URLSearchParams(paramString);
-        code = params.get('code');
+        code = new URLSearchParams(paramString).get('code');
       } else {
-        const params = new URLSearchParams(paramString.replace('#', ''));
-        code = params.get('code');
+        code = new URLSearchParams(paramString.replace('#', '')).get('code');
       }
 
-      if (!code) throw new Error("No code received from Discord.");
+      if (!code) throw new Error("No code received");
 
-      console.log("Discord Code received:", code);
-
-      // GET META ID FROM STORAGE
-      const metaId = localStorage.getItem(STORAGE_KEY_META);
-      if (!metaId) {
-        throw new Error("Meta ID not found. Please link Meta first.");
-      }
-
-      document.getElementById('user-info').innerHTML = 
-        `<strong>Meta ID:</strong> ${metaId}<br><strong>Discord:</strong> Linked Successfully`;
+      // Save the flag that Discord is linked
+      localStorage.setItem(STORAGE_DISCORD, 'true');
       
-      // Clear storage after success (optional)
-      // localStorage.removeItem(STORAGE_KEY_META);
-
-      showStep('success');
-      window.history.replaceState({}, document.title, BASE_URL);
+      // Get Meta ID
+      const metaId = localStorage.getItem(STORAGE_META) || "Unknown";
+      
+      showSuccess(metaId, "Discord User"); // Placeholder name
 
     } catch (err) {
-      console.error(err);
       document.getElementById('error-msg').textContent = "Discord Link Failed: " + err.message;
       showStep('error');
+    }
+  }
+
+  function showSuccess(metaId, discordName) {
+    document.getElementById('meta-display').textContent = metaId;
+    document.getElementById('success').classList.remove('hidden');
+    // Hide others
+    ['step-meta', 'step-discord', 'error'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    
+    // Clean URL
+    window.history.replaceState({}, document.title, BASE_URL);
+  }
+
+  function unlinkAccounts() {
+    if(confirm("Are you sure you want to unlink your accounts?")) {
+      localStorage.removeItem(STORAGE_META);
+      localStorage.removeItem(STORAGE_DISCORD);
+      location.reload();
     }
   }
 </script>
