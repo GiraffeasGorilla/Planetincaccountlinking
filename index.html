@@ -90,40 +90,51 @@
 <script>
   // CONFIGURATION
   const META_ORG_ID = "311136358617844";
-  const DISCORD_CLIENT_ID = "1499535933119397999"; // YOUR ID IS HERE
+  const DISCORD_CLIENT_ID = "1499535933119397999";
   const BASE_URL = window.location.origin + window.location.pathname;
   
   const META_REDIRECT_URI = BASE_URL; 
   const DISCORD_REDIRECT_URI = BASE_URL;
 
-  let currentMetaId = null;
+  // Use localStorage to persist data across page reloads
+  const STORAGE_KEY_META = 'linked_meta_id';
 
   window.onload = function() {
     const hash = window.location.hash.substring(1);
-    const search = window.location.search.substring(1); // Get ?code=... part
+    const search = window.location.search.substring(1);
 
     console.log("Hash:", hash);
     console.log("Search:", search);
 
-    // 1. Check for Meta Data (Hash) - Meta sends in #
+    // 1. Check for Meta Data (Hash)
     if (hash && hash.length > 10) {
       processMetaLink(hash);
       return;
     }
 
-    // 2. Check for Discord Code (Query Param ?code=...) - Discord sends in ?
+    // 2. Check for Discord Code (Query Param ?code=...)
     if (search && search.includes('code=')) {
       processDiscordLink(search);
       return;
     }
 
-    // 3. Fallback: Check hash for code if query param failed (rare)
+    // 3. Fallback: Check hash for code
     if (hash && hash.includes('code=')) {
       processDiscordLink(hash);
       return;
     }
 
-    // 4. Default: Show Meta Button
+    // 4. Default: Check if Meta is already linked (from previous session)
+    const savedMetaId = localStorage.getItem(STORAGE_KEY_META);
+    if (savedMetaId) {
+      console.log("Found saved Meta ID:", savedMetaId);
+      showStep('discord');
+      const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
+      document.getElementById('discord-btn').href = discordUrl;
+      return;
+    }
+
+    // 5. Show Meta Button
     const metaUrl = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
     document.getElementById('meta-btn').href = metaUrl;
   };
@@ -160,11 +171,11 @@
         throw new Error("No ID found in response. Check console.");
       }
 
-      currentMetaId = id;
-      console.log("Found Meta ID:", id);
+      // SAVE TO LOCALSTORAGE
+      localStorage.setItem(STORAGE_KEY_META, id);
+      console.log("Saved Meta ID to storage:", id);
 
       showStep('discord');
-      // Update Discord button URL to ensure scope includes 'identify'
       const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
       document.getElementById('discord-btn').href = discordUrl;
 
@@ -190,13 +201,19 @@
 
       console.log("Discord Code received:", code);
 
-      // Simulate success (In a real app, send 'code' to backend to get Discord User ID)
+      // GET META ID FROM STORAGE
+      const metaId = localStorage.getItem(STORAGE_KEY_META);
+      if (!metaId) {
+        throw new Error("Meta ID not found. Please link Meta first.");
+      }
+
       document.getElementById('user-info').innerHTML = 
-        `<strong>Meta ID:</strong> ${currentMetaId}<br><strong>Discord:</strong> Linked Successfully`;
+        `<strong>Meta ID:</strong> ${metaId}<br><strong>Discord:</strong> Linked Successfully`;
       
+      // Clear storage after success (optional)
+      // localStorage.removeItem(STORAGE_KEY_META);
+
       showStep('success');
-      
-      // Clean URL
       window.history.replaceState({}, document.title, BASE_URL);
 
     } catch (err) {
