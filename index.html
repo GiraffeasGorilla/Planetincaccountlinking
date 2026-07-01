@@ -90,36 +90,42 @@
 <script>
   // CONFIGURATION
   const META_ORG_ID = "311136358617844";
-  // The URL of THIS page (GitHub Pages)
+  const DISCORD_CLIENT_ID = "1499535933119397999"; // YOUR ID IS HERE
   const BASE_URL = window.location.origin + window.location.pathname;
   
   const META_REDIRECT_URI = BASE_URL; 
-  const DISCORD_CLIENT_ID = "1499535933119397999"; // REPLACE THIS
   const DISCORD_REDIRECT_URI = BASE_URL;
 
   let currentMetaId = null;
 
   window.onload = function() {
     const hash = window.location.hash.substring(1);
-    const search = window.location.search.substring(1);
+    const search = window.location.search.substring(1); // Get ?code=... part
 
     console.log("Hash:", hash);
     console.log("Search:", search);
 
-    // 1. Check for Meta Data (Hash)
+    // 1. Check for Meta Data (Hash) - Meta sends in #
     if (hash && hash.length > 10) {
       processMetaLink(hash);
       return;
     }
 
-    // 2. Check for Discord Code (Query Param or Hash)
-    if (search.includes('code=') || hash.includes('code=')) {
-      processDiscordLink(search || hash);
+    // 2. Check for Discord Code (Query Param ?code=...) - Discord sends in ?
+    if (search && search.includes('code=')) {
+      processDiscordLink(search);
       return;
     }
 
-    // 3. Default: Show Meta Button
-    document.getElementById('meta-btn').href = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
+    // 3. Fallback: Check hash for code if query param failed (rare)
+    if (hash && hash.includes('code=')) {
+      processDiscordLink(hash);
+      return;
+    }
+
+    // 4. Default: Show Meta Button
+    const metaUrl = `https://auth.oculus.com/sso/?redirect_uri=${encodeURIComponent(META_REDIRECT_URI)}&organization_id=${META_ORG_ID}`;
+    document.getElementById('meta-btn').href = metaUrl;
   };
 
   function showStep(step) {
@@ -139,33 +145,28 @@
       const json = atob(hash);
       const data = JSON.parse(json);
       
-      console.log("Decoded Data:", data); // Debug: See what keys are available
+      console.log("Decoded Meta Data:", data);
 
-      // NEW: Flexible ID extraction
-      let id = data['org-scoped_id'] || data.org_scoped_id;
+      let id = data['org-scoped_id'] || data.org_scoped_id || data['user_id'] || data.user_id || data['id'] || data.id;
       
-      // Try other common keys
-      if (!id) id = data['user_id'] || data.user_id;
-      if (!id) id = data['id'] || data.id;
-      if (!id) id = data['org-scoped_id'] || data['orgScopedId']; // Case variations
-
-      // Fallback: If we found ANY string that looks like an ID (numeric or UUID)
+      // Fallback: Find any numeric string or UUID
       if (!id) {
-        // Check all values in the object
         const values = Object.values(data);
         const potentialId = values.find(v => typeof v === 'string' && (v.includes('-') || /^\d+$/.test(v)));
         if (potentialId) id = potentialId;
       }
 
       if (!id) {
-        console.error("No valid ID found in:", data);
-        throw new Error("No ID found in response. Check console for details.");
+        throw new Error("No ID found in response. Check console.");
       }
 
       currentMetaId = id;
-      console.log("Found ID:", id);
+      console.log("Found Meta ID:", id);
 
       showStep('discord');
+      // Update Discord button URL to ensure scope includes 'identify'
+      const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
+      document.getElementById('discord-btn').href = discordUrl;
 
     } catch (err) {
       console.error(err);
@@ -185,12 +186,17 @@
         code = params.get('code');
       }
 
-      if (!code) throw new Error("No code received");
+      if (!code) throw new Error("No code received from Discord.");
 
+      console.log("Discord Code received:", code);
+
+      // Simulate success (In a real app, send 'code' to backend to get Discord User ID)
       document.getElementById('user-info').innerHTML = 
-        `<strong>Meta:</strong> ${currentMetaId}<br><strong>Discord:</strong> Linked`;
+        `<strong>Meta ID:</strong> ${currentMetaId}<br><strong>Discord:</strong> Linked Successfully`;
       
       showStep('success');
+      
+      // Clean URL
       window.history.replaceState({}, document.title, BASE_URL);
 
     } catch (err) {
